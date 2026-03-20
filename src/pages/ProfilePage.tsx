@@ -1,10 +1,16 @@
 import { useState } from "react";
 import Icon from "@/components/ui/icon";
+import { User } from "@/lib/api";
 
-export default function ProfilePage() {
+interface ProfilePageProps {
+  user: User;
+  onLogout: () => void;
+}
+
+export default function ProfilePage({ user, onLogout }: ProfilePageProps) {
   const [editing, setEditing] = useState(false);
-  const [name, setName] = useState("Алексей");
-  const [status, setStatus] = useState("Рад быть с семьёй 💛");
+  const [name, setName] = useState(user.name);
+  const [status, setStatus] = useState(user.status_text || "Рад быть с семьёй 💛");
   const [tempName, setTempName] = useState(name);
   const [tempStatus, setTempStatus] = useState(status);
 
@@ -21,9 +27,9 @@ export default function ProfilePage() {
   };
 
   const stats = [
-    { label: "Сообщений", value: "1 247" },
-    { label: "Контактов", value: "5" },
-    { label: "Фото", value: "42" },
+    { label: "Сообщений", value: "0" },
+    { label: "Контактов", value: "0" },
+    { label: "Фото", value: "0" },
   ];
 
   return (
@@ -42,11 +48,8 @@ export default function ProfilePage() {
         <div className="bg-white px-5 py-8 flex flex-col items-center border-b border-border">
           <div className="relative">
             <div className="w-24 h-24 bg-secondary rounded-3xl flex items-center justify-center text-5xl shadow-sm">
-              👨
+              {user.avatar}
             </div>
-            <button className="absolute -bottom-2 -right-2 bg-primary text-white w-8 h-8 rounded-2xl flex items-center justify-center shadow-md">
-              <Icon name="Camera" size={14} />
-            </button>
           </div>
 
           {editing ? (
@@ -93,24 +96,21 @@ export default function ProfilePage() {
 
         <div className="px-4 py-4 space-y-3">
           <div className="bg-white rounded-2xl border border-border/50 shadow-sm overflow-hidden">
-            {[
-              { icon: "Phone", label: "+7 900 123-45-67", sub: "Номер телефона" },
-              { icon: "MapPin", label: "Москва", sub: "Город" },
-              { icon: "Calendar", label: "12 марта 1985", sub: "День рождения" },
-            ].map((item) => (
-              <div key={item.label} className="flex items-center gap-4 px-5 py-4 border-b border-border/30 last:border-0">
-                <div className="w-10 h-10 bg-primary/10 text-primary rounded-2xl flex items-center justify-center shrink-0">
-                  <Icon name={item.icon} size={18} />
-                </div>
-                <div>
-                  <div className="font-medium text-sm">{item.label}</div>
-                  <div className="text-xs text-muted-foreground">{item.sub}</div>
-                </div>
+            <div className="flex items-center gap-4 px-5 py-4 border-b border-border/30">
+              <div className="w-10 h-10 bg-primary/10 text-primary rounded-2xl flex items-center justify-center shrink-0">
+                <Icon name="Phone" size={18} />
               </div>
-            ))}
+              <div>
+                <div className="font-medium text-sm">{user.phone}</div>
+                <div className="text-xs text-muted-foreground">Номер телефона</div>
+              </div>
+            </div>
           </div>
 
-          <button className="w-full flex items-center gap-3 bg-white border border-border/50 rounded-2xl px-5 py-4 text-destructive hover:bg-red-50 transition-colors">
+          <button
+            onClick={onLogout}
+            className="w-full flex items-center gap-3 bg-white border border-border/50 rounded-2xl px-5 py-4 text-destructive hover:bg-red-50 transition-colors"
+          >
             <Icon name="LogOut" size={18} />
             <span className="font-medium text-sm">Выйти из аккаунта</span>
           </button>

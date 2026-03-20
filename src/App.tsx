@@ -1,5 +1,7 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Toaster } from "@/components/ui/toaster";
+import { checkSession, logout, User } from "@/lib/api";
+import AuthPage from "@/pages/AuthPage";
 import ChatsPage from "@/pages/ChatsPage";
 import ContactsPage from "@/pages/ContactsPage";
 import ProfilePage from "@/pages/ProfilePage";
@@ -18,7 +20,39 @@ const tabs: { id: Tab; label: string; icon: string }[] = [
 ];
 
 export default function App() {
+  const [user, setUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<Tab>("chats");
+
+  useEffect(() => {
+    checkSession().then((res) => {
+      if (res.user) setUser(res.user);
+      setLoading(false);
+    });
+  }, []);
+
+  const handleLogout = async () => {
+    await logout();
+    setUser(null);
+    setActiveTab("chats");
+  };
+
+  if (loading) {
+    return (
+      <div className="flex h-screen items-center justify-center bg-background">
+        <div className="w-10 h-10 border-4 border-primary/20 border-t-primary rounded-full animate-spin" />
+      </div>
+    );
+  }
+
+  if (!user) {
+    return (
+      <>
+        <Toaster />
+        <AuthPage onAuth={setUser} />
+      </>
+    );
+  }
 
   const renderPage = () => {
     switch (activeTab) {
@@ -26,7 +60,7 @@ export default function App() {
       case "contacts": return <ContactsPage />;
       case "gallery": return <GalleryPage />;
       case "settings": return <SettingsPage />;
-      case "profile": return <ProfilePage />;
+      case "profile": return <ProfilePage user={user} onLogout={handleLogout} />;
     }
   };
 
@@ -43,15 +77,13 @@ export default function App() {
             key={tab.id}
             onClick={() => setActiveTab(tab.id)}
             className={`flex flex-col items-center gap-0.5 px-3 py-1.5 rounded-xl transition-all duration-200 ${
-              activeTab === tab.id
-                ? "text-primary"
-                : "text-muted-foreground hover:text-foreground"
+              activeTab === tab.id ? "text-primary" : "text-muted-foreground hover:text-foreground"
             }`}
           >
             <div className={`p-1.5 rounded-xl transition-all duration-200 ${activeTab === tab.id ? "bg-primary/10" : ""}`}>
               <Icon name={tab.icon} size={22} />
             </div>
-            <span className={`text-[10px] font-medium transition-all duration-200 ${activeTab === tab.id ? "opacity-100" : "opacity-60"}`}>
+            <span className={`text-[10px] font-medium transition-all ${activeTab === tab.id ? "opacity-100" : "opacity-60"}`}>
               {tab.label}
             </span>
           </button>
